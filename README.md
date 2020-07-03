@@ -3,8 +3,10 @@
 
 # Install (macOS)
 
-$ brew tap tohta/mksocksproxy
-$ brew install mksocksproxy
+```
+brew tap tohta/mksocksproxy
+brew install tohta/mksocksproxy/mksocksproxy
+```
 
 # Usage
 
