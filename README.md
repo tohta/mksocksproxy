@@ -10,12 +10,12 @@ brew install tohta/mksocksproxy/mksocksproxy
 
 # Usage
 
-To enable,
+To create,
 ```
 mksocksproxy on
 ```
 
-To disable,
+To destroy,
 ```
 mksocksproxy off
 ```
