@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -e
+
+usage() {
+  echo "$(basename $0) <on|off>"
+}
+
+GIT_HTTP=http://*.git.example.com
+GIT_HTTPS=https://*.git.example.com
+
+# sanity checks
+[[ $(uname -s) == Darwin ]] || { echo "Aborting, You're not running macOS."; exit 2; }
+
+TOGGLE=${1}
+NETWORKSVC="Wi-Fi"
+LOCALPORT="8888"
+REMOTEHOST="YOURREMOTEHOST"
+TUNNEL="ssh -f -N -D ${LOCALPORT} -C ${REMOTEHOST}"
+
+# setup
+networksetup -setsocksfirewallproxy ${NETWORKSVC} localhost ${LOCALPORT}
+
+# on/off ssh tunnel
+case ${TOGGLE} in
+  on)
+      lsof -i4:${LOCALPORT} || \
+      eval ${TUNNEL} 2>/dev/null && \
+      git config --file ${HOME}/.gitconfig http.${GIT_HTTP}.proxy "socks5://127.0.0.1:${LOCALPORT}" && \
+      git config --file ${HOME}/.gitconfig https.${GIT_HTTPS}.proxy "socks5://127.0.0.1:${LOCALPORT}" || : \
+      ;;
+  off)
+      pkill -KILL -f "${TUNNEL}" && \
+      git config --file ${HOME}/.gitconfig --remove-section http.${GIT_HTTP} && \
+      git config --file ${HOME}/.gitconfig --remove-section https.${GIT_HTTPS} || : \
+      ;;
+  *)
+      usage
+      exit 1
+      ;;
+esac
+
+# toggle switch
+networksetup -setsocksfirewallproxystate ${NETWORKSVC} ${TOGGLE}
+
+# verbose
+networksetup -getsocksfirewallproxy ${NETWORKSVC}
