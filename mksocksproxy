@@ -5,22 +5,28 @@ usage() {
   echo "$(basename $0) <on|off>"
 }
 
-GIT_HTTP=http://*.git.example.com
-GIT_HTTPS=https://*.git.example.com
 
 # sanity checks
 [[ $(uname -s) == Darwin ]] || { echo "Aborting, You're not running macOS."; exit 2; }
 
-TOGGLE=${1}
-NETWORKSVC="Wi-Fi"
-LOCALPORT="8888"
-REMOTEHOST="YOURREMOTEHOST"
+
+# options
+GIT_HTTP=http://*.git.example.com
+GIT_HTTPS=https://*.git.example.com
+NETWORKSVC="Wi-Fi"                                  # Run `networksetup -listallnetworkservices` for the list.
+LOCALPORT="8888"                                    # Local port to bind.
+REMOTEHOST="YOURREMOTEHOST"                         # Your bastion host.
 TUNNEL="ssh -f -N -D ${LOCALPORT} -C ${REMOTEHOST}"
 
+
 # setup
+# System Preferences > Network > [Interface] > Advanced... > Proxies > SOCKS Proxy
 networksetup -setsocksfirewallproxy ${NETWORKSVC} localhost ${LOCALPORT}
 
-# on/off ssh tunnel
+
+# main
+# create/destroy ssh tunnel and modify ~/.gitconfig
+TOGGLE=${1}
 case ${TOGGLE} in
   on)
       lsof -i4:${LOCALPORT} || \
@@ -39,8 +45,10 @@ case ${TOGGLE} in
       ;;
 esac
 
+
 # toggle switch
 networksetup -setsocksfirewallproxystate ${NETWORKSVC} ${TOGGLE}
+
 
 # verbose
 networksetup -getsocksfirewallproxy ${NETWORKSVC}
