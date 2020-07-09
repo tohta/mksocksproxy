@@ -30,14 +30,16 @@ TOGGLE=${1}
 case ${TOGGLE} in
   on)
       lsof -i4:${LOCALPORT} || \
-      eval ${TUNNEL} 2>/dev/null && \
+      timeout 5 ${TUNNEL} 2>/dev/null && \
       git config --file ${HOME}/.gitconfig http.${GIT_HTTP}.proxy "socks5://127.0.0.1:${LOCALPORT}" && \
-      git config --file ${HOME}/.gitconfig https.${GIT_HTTPS}.proxy "socks5://127.0.0.1:${LOCALPORT}" || : \
+      git config --file ${HOME}/.gitconfig https.${GIT_HTTPS}.proxy "socks5://127.0.0.1:${LOCALPORT}" || \
+      { echo error; exit 2; } \
       ;;
   off)
       pkill -KILL -f "${TUNNEL}" && \
       git config --file ${HOME}/.gitconfig --remove-section http.${GIT_HTTP} && \
-      git config --file ${HOME}/.gitconfig --remove-section https.${GIT_HTTPS} || : \
+      git config --file ${HOME}/.gitconfig --remove-section https.${GIT_HTTPS} || \
+      { echo error; exit 2; } \
       ;;
   *)
       usage
